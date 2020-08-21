@@ -7,7 +7,7 @@
           :key="todo.id"
           :id="todo.id"
           :title="todo.title"
-          :is-active="todo.id === stateTodo.activeId"
+          :is-active="todo.id === activeId"
           :is-done="todo.isDone"
           @click="onClickTodo(todo.id)"
           @status-change="handleTodoStatusChanged"
@@ -16,7 +16,7 @@
     </div>
 
     <div class="right">
-      <div class="active" v-if="stateTodo.activeId > 0">
+      <div class="active" v-if="activeId > 0">
         <h2 class="active-header">
           <input class="active-header-checkbox" type="checkbox" v-model="activeTodo.isDone" />
           <div class="active-header-title">{{ activeTodo.title }}</div>
@@ -28,17 +28,13 @@
 </template>
 
 <script>
-import { reactive, computed, watchEffect } from 'vue';
+import { reactive, computed, onBeforeMount, toRefs } from 'vue';
 import TodoItem from './TodoItem';
+import { reqFetchTodos } from '../../api/todo';
 
 function useTodo() {
   const state = reactive({
-    todos: ['Banana', 'Orange', 'Apple', 'Mango'].map((item, index) => ({
-      id: index + 1,
-      title: item,
-      content: item + item + item + item,
-      isDone: false
-    })),
+    todos: [],
     activeId: 0
   });
 
@@ -47,12 +43,10 @@ function useTodo() {
   const calcDoneTodos = computed(() => state.todos.filter(todo => todo.isDone));
   const calcSortedTodos = computed(() => [...calcUndoneTodos.value, ...calcDoneTodos.value]);
 
-  watchEffect(() => {
-    if (calcUndoneTodos.value.length === 0) {
-      console.log('Aha~ 你已经完成了全部任务');
-    }
-  });
-
+  const getTodos = async () => {
+    const { data } = await reqFetchTodos();
+    state.todos = data;
+  };
   const onClickTodo = id => {
     state.activeId = id;
   };
@@ -61,13 +55,14 @@ function useTodo() {
   };
 
   return {
-    stateTodo: state,
+    ...toRefs(state),
     onClickTodo,
     handleTodoStatusChanged,
     calcUndoneTodos,
     calcDoneTodos,
     activeTodo,
-    calcSortedTodos
+    calcSortedTodos,
+    getTodos
   };
 }
 
@@ -77,7 +72,13 @@ export default {
   components: { TodoItem },
 
   setup() {
-    return { ...useTodo() };
+    const { getTodos, ...otherTodoEffect } = useTodo();
+
+    onBeforeMount(async () => {
+      await getTodos();
+    });
+
+    return { ...otherTodoEffect };
   }
 };
 </script>
