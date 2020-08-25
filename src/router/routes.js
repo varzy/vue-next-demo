@@ -20,6 +20,12 @@ export const navigationRoutes = [
     name: 'Form',
     component: _import('form/Index'),
     meta: { title: 'Form' }
+  },
+  {
+    path: 'twitter',
+    name: 'Twitter',
+    component: _import('twitter/Index'),
+    meta: { title: 'Twitter' }
   }
 ];
 
