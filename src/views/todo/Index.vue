@@ -1,7 +1,8 @@
 <template>
   <div class="todo">
     <div class="left">
-      <div class="list">
+      <div class="loading" v-if="isLoading">Loading...</div>
+      <div class="list" v-else>
         <todo-item
           v-for="todo in calcSortedTodos"
           :key="todo.id"
@@ -35,7 +36,8 @@ import { reqFetchTodos } from '../../api/todo';
 function useTodo() {
   const state = reactive({
     todos: [],
-    activeId: 0
+    activeId: 0,
+    isLoading: false
   });
 
   const activeTodo = computed(() => state.todos.find(todo => todo.id === state.activeId));
@@ -44,8 +46,13 @@ function useTodo() {
   const calcSortedTodos = computed(() => [...calcUndoneTodos.value, ...calcDoneTodos.value]);
 
   const getTodos = async () => {
-    const { data } = await reqFetchTodos();
-    state.todos = data;
+    try {
+      state.isLoading = true;
+      const { data } = await reqFetchTodos();
+      state.todos = data;
+    } finally {
+      state.isLoading = false;
+    }
   };
   const onClickTodo = id => {
     state.activeId = id;
