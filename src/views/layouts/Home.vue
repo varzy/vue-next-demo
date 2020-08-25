@@ -7,9 +7,9 @@
       <div class="home-body-aside">
         <navigation-item
           v-for="item in navigation"
-          :key="item.routeName"
+          :key="item.name"
           :name="item.name"
-          :route-name="item.routeName"
+          :route-name="item.meta.title"
         ></navigation-item>
       </div>
       <div class="home-body-main"><router-view /></div>
@@ -18,17 +18,8 @@
 </template>
 
 <script>
-import { ref } from 'vue';
 import NavigationItem from './NavigationItem';
-
-function useNavigation() {
-  const navigation = ref([
-    { name: 'Dashboard', routeName: 'Index' },
-    { name: 'Todo', routeName: 'Todo' }
-  ]);
-
-  return { navigation };
-}
+import { useStore } from 'vuex';
 
 export default {
   name: 'Home',
@@ -36,9 +27,9 @@ export default {
   components: { NavigationItem },
 
   setup() {
-    const { navigation } = useNavigation();
+    const store = useStore();
 
-    return { navigation };
+    return { navigation: store.state.view.navigation };
   }
 };
 </script>
